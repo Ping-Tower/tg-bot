@@ -7,7 +7,6 @@ from faststream.rabbit import RabbitBroker
 
 from tg_bot.config.settings import Settings
 from tg_bot.messaging.models import TelegramNotificationMessage
-from tg_bot.services.notification_formatter import format_notification_text
 from tg_bot.telegram.handlers import build_router
 from tg_bot.telegram.keyboards import build_notification_keyboard
 
@@ -47,12 +46,11 @@ class TelegramBotRuntime:
         await self.bot.session.close()
 
     async def send_notification(self, notification: TelegramNotificationMessage) -> None:
-        text = format_notification_text(notification)
-        keyboard = build_notification_keyboard(self.settings, notification)
+        keyboard = build_notification_keyboard(notification)
 
         await self.bot.send_message(
-            chat_id=notification.telegram_user_id,
-            text=text,
+            chat_id=notification.chat_id,
+            text=notification.text,
             reply_markup=keyboard,
             disable_web_page_preview=True,
         )

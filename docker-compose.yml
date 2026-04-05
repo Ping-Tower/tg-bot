@@ -1,0 +1,25 @@
+services:
+  tg-bot:
+    container_name: pingtower-tg-bot
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pingtower-tg-bot:local
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${TG_BOT_PORT}:${TG_BOT_PORT}"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:${TG_BOT_PORT}/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - pingtower_network
+
+networks:
+  pingtower_network:
+    external: true
+    name: pingtower_network

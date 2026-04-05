@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from tg_bot.config.settings import Settings
-from tg_bot.messaging.models import TelegramNotificationMessage
+from tg_bot.messaging.models import TelegramInlineButton, TelegramNotificationMessage
 
 
 def build_start_keyboard(settings: Settings) -> InlineKeyboardMarkup:
@@ -21,21 +21,29 @@ def build_start_keyboard(settings: Settings) -> InlineKeyboardMarkup:
     )
 
 
-def build_notification_keyboard(
-    settings: Settings,
-    notification: TelegramNotificationMessage,
-) -> InlineKeyboardMarkup:
-    server_url = notification.metadata.get("serverUrl")
-    if not isinstance(server_url, str) or not server_url.strip():
-        server_url = settings.build_server_url(notification.server_id)
+def build_notification_keyboard(notification: TelegramNotificationMessage) -> InlineKeyboardMarkup | None:
+    rows: list[list[InlineKeyboardButton]] = []
 
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=settings.server_button_text,
-                    url=server_url,
-                )
-            ]
-        ]
-    )
+    for source_row in notification.inline_buttons:
+        row = build_button_row(source_row)
+        if row:
+            rows.append(row)
+
+    if not rows:
+        return None
+
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def build_button_row(source_row: list[TelegramInlineButton]) -> list[InlineKeyboardButton]:
+    row: list[InlineKeyboardButton] = []
+
+    for button in source_row:
+        if button.url:
+            row.append(InlineKeyboardButton(text=button.text, url=button.url))
+            continue
+
+        if button.callback_data:
+            row.append(InlineKeyboardButton(text=button.text, callback_data=button.callback_data))
+
+    return row

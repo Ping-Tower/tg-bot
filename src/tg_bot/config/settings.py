@@ -27,16 +27,9 @@ class Settings(BaseSettings):
     start_message_text: str = "TODO: replace this /start text."
     start_web_button_text: str = "Open Web"
     start_github_button_text: str = "GitHub"
-    server_button_text: str = "View Server"
-    server_url_template: str = "/servers/{server_id}"
 
     @computed_field(return_type=str)
     @property
     def webhook_url(self) -> str:
         path = self.webhook_path if self.webhook_path.startswith("/") else f"/{self.webhook_path}"
         return f"{self.webhook_base_url.rstrip('/')}{path}"
-
-    def build_server_url(self, server_id: str) -> str:
-        path = self.server_url_template.format(server_id=server_id)
-        path = path if path.startswith("/") else f"/{path}"
-        return f"{self.web_app_url.rstrip('/')}{path}"

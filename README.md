@@ -21,7 +21,7 @@ uv run tg-bot
 ## What it does
 
 - consumes notification commands from `telegramQueue`
-- sends Telegram messages with inline buttons
+- sends ready-made Telegram messages from the queue using `text + inlineButtons`
 - serves a webhook endpoint for Telegram updates
 - handles `/start` with two buttons:
   - website
