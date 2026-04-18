@@ -1,11 +1,72 @@
 import unittest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
+from faststream.rabbit import RabbitQueue
+
+from tg_bot.config.settings import Settings
 from tg_bot.messaging.models import TelegramNotificationMessage
 from tg_bot.services.telegram_bot_runtime import TelegramBotRuntime
 
 
 class TelegramBotRuntimeTests(unittest.IsolatedAsyncioTestCase):
+    def test_build_bot_session_uses_direct_connection_by_default(self) -> None:
+        runtime = object.__new__(TelegramBotRuntime)
+        runtime.settings = Settings.model_validate(
+            {
+                "bot_token": "123456:TEST_TOKEN",
+                "mode": "polling",
+                "proxy_url": None,
+                "web_app_url": "https://app.example.com",
+                "github_url": "https://github.com/example/PingTower",
+            }
+        )
+
+        with patch("tg_bot.services.telegram_bot_runtime.AiohttpSession") as session_cls:
+            TelegramBotRuntime._build_bot_session(runtime)
+
+        session_cls.assert_called_once_with()
+
+    def test_build_bot_session_passes_proxy_url_to_aiohttp_session(self) -> None:
+        runtime = object.__new__(TelegramBotRuntime)
+        runtime.settings = Settings.model_validate(
+            {
+                "bot_token": "123456:TEST_TOKEN",
+                "mode": "polling",
+                "proxy_url": "socks5://user:password@127.0.0.1:1080",
+                "web_app_url": "https://app.example.com",
+                "github_url": "https://github.com/example/PingTower",
+            }
+        )
+
+        with patch("tg_bot.services.telegram_bot_runtime.AiohttpSession") as session_cls:
+            TelegramBotRuntime._build_bot_session(runtime)
+
+        session_cls.assert_called_once_with(proxy="socks5://user:password@127.0.0.1:1080")
+
+    def test_register_subscribers_declares_durable_queue(self) -> None:
+        runtime = object.__new__(TelegramBotRuntime)
+        runtime.settings = Settings.model_validate(
+            {
+                "bot_token": "123456:TEST_TOKEN",
+                "mode": "polling",
+                "rabbitmq_queue": "telegramQueue",
+                "proxy_url": None,
+                "web_app_url": "https://app.example.com",
+                "github_url": "https://github.com/example/PingTower",
+            }
+        )
+        runtime.broker = Mock()
+        runtime.broker.subscriber.side_effect = lambda queue: (lambda handler: handler)
+
+        TelegramBotRuntime._register_subscribers(runtime)
+
+        runtime.broker.subscriber.assert_called_once()
+        queue = runtime.broker.subscriber.call_args.args[0]
+        self.assertIsInstance(queue, RabbitQueue)
+        self.assertEqual("telegramQueue", queue.name)
+        self.assertTrue(queue.durable)
+        self.assertFalse(queue.auto_delete)
+
     async def test_send_notification_passes_ready_text_and_keyboard_to_bot(self) -> None:
         runtime = object.__new__(TelegramBotRuntime)
         runtime.bot = AsyncMock()

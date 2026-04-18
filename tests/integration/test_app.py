@@ -2,6 +2,7 @@ import importlib
 import os
 import sys
 import unittest
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any
 from unittest.mock import patch
@@ -34,11 +35,13 @@ class FakeRuntime:
     started: bool = False
     stopped: bool = False
 
-    async def start(self) -> None:
+    @asynccontextmanager
+    async def run(self):
         self.started = True
-
-    async def stop(self) -> None:
-        self.stopped = True
+        try:
+            yield
+        finally:
+            self.stopped = True
 
 
 class AppIntegrationTests(unittest.TestCase):

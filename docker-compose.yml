@@ -4,12 +4,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: pingtower-tg-bot:local
+    image: ${TG_BOT_IMAGE_NAME:-tg-bot:local}
     restart: unless-stopped
     env_file:
       - .env
     ports:
-      - "${TG_BOT_PORT}:${TG_BOT_PORT}"
+      - "${TG_BOT_HOST_PORT:-8081}:${TG_BOT_PORT}"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:${TG_BOT_PORT}/healthz"]
       interval: 15s

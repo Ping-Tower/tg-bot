@@ -1,4 +1,6 @@
-from pydantic import computed_field
+from typing import Literal
+
+from pydantic import computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,7 +13,8 @@ class Settings(BaseSettings):
     )
 
     bot_token: str
-    webhook_base_url: str
+    mode: Literal["webhook", "polling"] = "webhook"
+    webhook_base_url: str | None = None
     webhook_path: str = "/webhooks/telegram"
     webhook_secret: str | None = None
 
@@ -20,6 +23,7 @@ class Settings(BaseSettings):
 
     rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
     rabbitmq_queue: str = "telegramQueue"
+    proxy_url: str | None = None
 
     web_app_url: str
     github_url: str
@@ -28,8 +32,16 @@ class Settings(BaseSettings):
     start_web_button_text: str = "Open Web"
     start_github_button_text: str = "GitHub"
 
-    @computed_field(return_type=str)
+    @model_validator(mode="after")
+    def validate_webhook_settings(self) -> "Settings":
+        if self.mode == "webhook" and not self.webhook_base_url:
+            raise ValueError("TG_BOT_WEBHOOK_BASE_URL is required when TG_BOT_MODE=webhook")
+        return self
+
+    @computed_field(return_type=str | None)
     @property
-    def webhook_url(self) -> str:
+    def webhook_url(self) -> str | None:
+        if not self.webhook_base_url:
+            return None
         path = self.webhook_path if self.webhook_path.startswith("/") else f"/{self.webhook_path}"
         return f"{self.webhook_base_url.rstrip('/')}{path}"
