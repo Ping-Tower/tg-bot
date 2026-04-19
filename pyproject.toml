@@ -2,7 +2,6 @@
 name = "pingtower-tg-bot"
 version = "0.1.0"
 description = "Telegram bot worker for PingTower notifications"
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aiogram>=3.22.0,<4.0.0",
