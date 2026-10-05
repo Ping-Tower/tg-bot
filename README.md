@@ -1,27 +1,13 @@
-<div align="center">
+# PingTower Telegram Bot
 
-<a href="https://gitlab.com/pingtower"><img src="https://gitlab.com/uploads/-/system/group/avatar/121984904/logo-mark-avatar.png" width="72" alt="PingTower"></a>
+Telegram bot that delivers PingTower alerts and greets users with links to the dashboard.
 
-# 💬 tg-bot
-
-### Telegram bot that delivers PingTower alerts and greets users with links to the dashboard
-
-[![pipeline](https://gitlab.com/pingtower/tg-bot/badges/main/pipeline.svg)](https://gitlab.com/pingtower/tg-bot/-/pipelines)
-![Python](https://img.shields.io/badge/Python_3.12-3776AB?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
-![aiogram](https://img.shields.io/badge/aiogram_3-26A5E4?logo=telegram&logoColor=white)
-![FastStream](https://img.shields.io/badge/FastStream-RabbitMQ-FF6600?logo=rabbitmq&logoColor=white)
-
-<sub>Part of <a href="https://gitlab.com/pingtower"><b>PingTower</b></a> — real-time server availability monitoring</sub>
-
-</div>
-
----
+Stack: Python 3.12, FastAPI, aiogram 3, FastStream, RabbitMQ.
 
 ## Role in the system
 
 tg-bot is a thin delivery channel. Users link their Telegram account in the web app (Telegram Login Widget,
-verified by the [api](https://gitlab.com/pingtower/api)); when a server changes status, the api composes the
+verified by the `api`); when a server changes status, the api composes the
 alert text and buttons and puts them into `telegramQueue`. The bot just sends them — all business logic
 stays in the api.
 
@@ -44,13 +30,13 @@ flowchart LR
 
 | Direction | Channel | Name | Payload |
 | --- | --- | --- | --- |
-| ⬅️ In | work queue (default exchange) | `telegramQueue` | `{ "chatId", "text", "inlineButtons": [[{ "text", "url" \| "callbackData" }]] }` |
-| ⬅️ In | HTTP | `POST /webhooks/telegram` | Telegram updates (webhook mode) |
-| ➡️ Out | Telegram Bot API | `sendMessage` | alert to the linked chat |
+| In | work queue (default exchange) | `telegramQueue` | `{ "chatId", "text", "inlineButtons": [[{ "text", "url" \| "callbackData" }]] }` |
+| In | HTTP | `POST /webhooks/telegram` | Telegram updates (webhook mode) |
+| Out | Telegram Bot API | `sendMessage` | alert to the linked chat |
 
 ## Quick start
 
-**Whole stack** — via [infra](https://gitlab.com/pingtower/infra) (all repos cloned side by side):
+**Whole stack** — via `infra` (all repos cloned side by side):
 
 ```bash
 make -C infra up
