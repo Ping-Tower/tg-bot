@@ -1,0 +1,20 @@
+# Статичные настройки tg-bot (pydantic-settings, env_prefix TG_BOT_).
+# Токен бота и webhook secret — секретные (см. secrets/external-secrets.yaml),
+# rabbitmq_url собирается в deployment из infra ConfigMap + Secret.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tg-bot
+  namespace: pingtower
+data:
+  TG_BOT_MODE: webhook
+  TG_BOT_HOST: 0.0.0.0
+  TG_BOT_PORT: "8080"
+  # Путь по умолчанию; ingress ведёт https://tg.pingtower.tech/* → service.
+  TG_BOT_WEBHOOK_BASE_URL: https://tg.pingtower.tech
+  TG_BOT_WEBHOOK_PATH: /webhooks/telegram
+  TG_BOT_RABBITMQ_QUEUE: telegramQueue
+  # Кнопки в боте: Web-приложение — сайт, вторая кнопка — GitHub.
+  # TODO: уточнить реальный адрес GitHub-организации перед первым деплоем.
+  TG_BOT_WEB_APP_URL: https://pingtower.tech
+  TG_BOT_GITHUB_URL: https://github.com/pingtower

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tg-bot
+  namespace: pingtower
+spec:
+  selector:
+    app: tg-bot
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
